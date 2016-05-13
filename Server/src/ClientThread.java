@@ -50,8 +50,9 @@ public class ClientThread extends Thread {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         } finally {
+            System.out.println(name + "[out]");
+            sendAll(name + "[out]");// 그리고 그 클라이언트 이름을 파라미터값으로 줘서 다른
             list.remove(writer);// 클라이언트가 나가면 리스트에 저정된 클라이언트를 하나 삭제
-            sendAll("#" + name + "나가셨습니다");// 그리고 그 클라이언트 이름을 파라미터값으로 줘서 다른
             // 클라이언트 들에게도 보냄
             try {
                 socket.close();

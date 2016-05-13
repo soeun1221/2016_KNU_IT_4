@@ -1,32 +1,24 @@
 package com.knu.android.talktome;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.knu.android.talktome.instance.Constant;
 import com.knu.android.talktome.utils.AudioWriterPCM;
 import com.naver.speech.clientapi.SpeechConfig;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
-import java.net.Socket;
 
 
 public class MainActivity extends Activity {
@@ -39,8 +31,8 @@ public class MainActivity extends Activity {
     private RecognitionHandler handler;
     private NaverRecognizer naverRecognizer;
 
-    private TextView txtResult;
     private Button btnStart;
+    private TextView txtResult;
     private String mResult;
 
     private AudioWriterPCM writer;
@@ -50,7 +42,12 @@ public class MainActivity extends Activity {
 
     private SharedPreferences sharedPref;
 
-    private Socket socket;
+    private ListView listView;
+    public static MessageAdapter messageAdapter;
+
+    private Client client;
+
+    private long backPressedTime = 0;
 
     // Handle speech recognition Messages.
     private void handleMessage(Message msg) throws IOException {
@@ -65,8 +62,7 @@ public class MainActivity extends Activity {
 
             case R.id.audioRecording:
                 writer.write((short[]) msg.obj);
-                Log.i(TAG, "handleMessage: audioRecording");
-
+//                Log.i(TAG, "handleMessage: audioRecording");
                 break;
 
             case R.id.partialResult:
@@ -113,28 +109,33 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        sharedPref = getSharedPreferences("TalkToMe", Activity.MODE_PRIVATE);
+
         txtResult = (TextView) findViewById(R.id.txt_result);
         btnStart = (Button) findViewById(R.id.btn_start);
-        sharedPref = getSharedPreferences("TalkToMe", Activity.MODE_PRIVATE);
+        listView = (ListView) findViewById(R.id.messageListView);
+
+        messageAdapter = new MessageAdapter(this, R.layout.message_item);
+        listView.setAdapter(messageAdapter);
+        listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+
+        // When message is added, it makes listview to scroll last message
+        messageAdapter.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                Log.d(TAG, "onChanged: "+(messageAdapter.getCount()-1));
+                listView.setSelection(messageAdapter.getCount()-1);
+            }
+        });
 
         listening = false;
 
         handler = new RecognitionHandler(this);
         naverRecognizer = new NaverRecognizer(this, handler, CLIENT_ID, SPEECH_CONFIG);
 
-        try {
-            socket = new Socket(Constant.IP, Constant.PORT);// 소켓생성하고 초기값으로
-            // IP주소와 포트번호
-            Thread thread1 = new SenderThread(socket, sharedPref.getString("speaker", ""));// 센드 스레드 생성하고 초기값으로
-            // 공유데이터인 소켓과 사용자
-            // 이름을 줌
-            Thread thread2 = new ReceiverThread(socket);// 리시브 스레드 생성하고 초기값으로 공유
-            // 데이터인 소켓을 줌
-            thread1.start();// 스레드 시작
-            thread2.start();// 스레드 시작
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        client = new Client(sharedPref.getString("speaker", ""), messageAdapter);
+        client.execute();
     }
 
     public void btnStart(View v) {
@@ -166,10 +167,7 @@ public class MainActivity extends Activity {
 
     public void sendTalk(String message) throws IOException {
         if(message.isEmpty()) return;
-
-        PrintWriter writer = new PrintWriter(socket.getOutputStream());
-        writer.println(message);
-        writer.flush();
+        client.send(message);
     }
 
     @Override
@@ -187,10 +185,10 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         // release() must be called on pause time.
-        naverRecognizer.getSpeechRecognizer().stopImmediately();
-        naverRecognizer.getSpeechRecognizer().release();
-
-        isRunning = false;
+//        naverRecognizer.getSpeechRecognizer().stopImmediately();
+//        naverRecognizer.getSpeechRecognizer().release();
+//
+//        isRunning = false;
     }
 
     // Declare handler for handling SpeechRecognizer thread's Messages.
@@ -211,6 +209,36 @@ public class MainActivity extends Activity {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    public MainActivity() {
+        super();
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        client.cancel(true);
+        Log.d(TAG, "onDestroy :"+client.getStatus());
+
+        naverRecognizer.getSpeechRecognizer().stopImmediately();
+        naverRecognizer.getSpeechRecognizer().release();
+        isRunning = false;
+
+        super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        long tempTime = System.currentTimeMillis();
+        long intervalTime = tempTime - backPressedTime;
+        if (intervalTime >= 0 && intervalTime <= 2000) {
+            super.onBackPressed();
+        }
+        else {
+            backPressedTime = tempTime;
+            Toast.makeText(this, "'뒤로'버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
         }
     }
 }
