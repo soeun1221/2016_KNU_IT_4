@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "201161993578",
+    "project_id": "talktome-d42ac"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201161993578:android:f035b27ad13b10fe",
+        "android_client_info": {
+          "package_name": "com.knu.android.talktome"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_wLY17A97creRFIvm1F5IojVRNR4Zp_o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
