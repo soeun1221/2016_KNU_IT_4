@@ -1,8 +1,9 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'java'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 15
     buildToolsVersion "23.0.2"
 
     defaultConfig {
@@ -11,6 +12,9 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        // Enabling multidex support.
+        multiDexEnabled true
+
     }
     buildTypes {
         release {
@@ -18,10 +22,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    dexOptions {
+        dexInProcess = false
+//        javaMaxHeapSize "4g"
+//        preDexLibraries = false
+    }
+
 }
+
+repositories {
+    mavenLocal()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.1.0'
-    compile "com.google.android.gms:play-services-gcm:8.3.0"
+    compile 'com.android.support:appcompat-v7:24.0.0-beta1'
+    compile 'com.android.support:multidex:1.0.0'
+//    compile 'edu.cmu.sphinx:sphinx4-core:5prealpha-SNAPSHOT'
+//    compile 'edu.cmu.sphinx:sphinx4-data:5prealpha-SNAPSHOT'
+//    compile 'com.googlecode.efficient-java-matrix-library:ejml:0.19'
+//    compile 'com.thoughtworks.xstream:xstream:1.4.9'
 }

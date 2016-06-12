@@ -80,7 +80,7 @@ public class Client extends AsyncTask<Void, MessageItem, Void> {
                     Log.d(TAG, "receive: Cancel");
                     break;
                 }
-                if (str == null) {// null이면
+                if (str.equals(speaker + "[out]")) {// null이면
                     Log.d(TAG, "receive: out");
                     break;// 종료
                 }
@@ -93,6 +93,8 @@ public class Client extends AsyncTask<Void, MessageItem, Void> {
             System.out.println(e.getMessage());
         }
     }
+
+
 
     @Override
     protected void onCancelled() {

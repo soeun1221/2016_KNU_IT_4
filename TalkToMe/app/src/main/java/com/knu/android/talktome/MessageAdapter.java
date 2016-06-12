@@ -15,7 +15,7 @@ import java.util.ArrayList;
  */
 public class MessageAdapter extends ArrayAdapter<MessageItem> {
 
-    ArrayList<MessageItem> messageList = new ArrayList<>();
+    ArrayList<MessageItem> messageList = new ArrayList<MessageItem>();
 
     public MessageAdapter(Context context, int resource) {
         super(context, resource);

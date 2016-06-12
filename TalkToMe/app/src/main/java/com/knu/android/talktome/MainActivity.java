@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private RecognitionHandler handler;
     private NaverRecognizer naverRecognizer;
 
+
     private Button btnStart;
     private TextView txtResult;
     private String mResult;
@@ -62,7 +63,6 @@ public class MainActivity extends Activity {
 
             case R.id.audioRecording:
                 writer.write((short[]) msg.obj);
-//                Log.i(TAG, "handleMessage: audioRecording");
                 break;
 
             case R.id.partialResult:
@@ -98,8 +98,9 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "handleMessage: clientInactive");
                 btnStart.setText(R.string.str_start);
                 isRunning = false;
-                if(listening)
+                if (listening) {
                     click();
+                }
                 break;
         }
     }
@@ -124,14 +125,15 @@ public class MainActivity extends Activity {
             @Override
             public void onChanged() {
                 super.onChanged();
-                Log.d(TAG, "onChanged: "+(messageAdapter.getCount()-1));
-                listView.setSelection(messageAdapter.getCount()-1);
+                Log.d(TAG, "onChanged: " + (messageAdapter.getCount() - 1));
+                listView.setSelection(messageAdapter.getCount() - 1);
             }
         });
 
         listening = false;
 
         handler = new RecognitionHandler(this);
+
         naverRecognizer = new NaverRecognizer(this, handler, CLIENT_ID, SPEECH_CONFIG);
 
         client = new Client(sharedPref.getString("speaker", ""), messageAdapter);
@@ -144,7 +146,7 @@ public class MainActivity extends Activity {
     }
 
     public void click() {
-        Log.d(TAG, "click: "+isRunning);
+        Log.d(TAG, "click: " + isRunning);
         if (!isRunning) {
             // Start button is pushed when SpeechRecognizer's state is inactive.
             // Run SpeechRecongizer by calling recognize().
@@ -166,7 +168,7 @@ public class MainActivity extends Activity {
     }
 
     public void sendTalk(String message) throws IOException {
-        if(message.isEmpty()) return;
+        if (message.isEmpty()) return;
         client.send(message);
     }
 
@@ -220,7 +222,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
 
         client.cancel(true);
-        Log.d(TAG, "onDestroy :"+client.getStatus());
+        Log.d(TAG, "onDestroy :" + client.getStatus());
 
         naverRecognizer.getSpeechRecognizer().stopImmediately();
         naverRecognizer.getSpeechRecognizer().release();
@@ -234,9 +236,13 @@ public class MainActivity extends Activity {
         long tempTime = System.currentTimeMillis();
         long intervalTime = tempTime - backPressedTime;
         if (intervalTime >= 0 && intervalTime <= 2000) {
+            try {
+                sendTalk("bye");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             super.onBackPressed();
-        }
-        else {
+        } else {
             backPressedTime = tempTime;
             Toast.makeText(this, "'뒤로'버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
         }

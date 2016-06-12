@@ -35,7 +35,6 @@ class NaverRecognizer implements SpeechRecognitionListener {
         }
 
         mRecognizer.setSpeechRecognitionListener(this);
-
         // If you want to recognize audio file, please add codes as follows.
         // mRecognizer.setAudioFileInput(true);
         // mRecognizer.setAudioFilePath(Environment.getExternalStorageDirectory().getAbsolutePath()
