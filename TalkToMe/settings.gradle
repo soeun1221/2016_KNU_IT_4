@@ -1,1 +1,1 @@
-include ':app', ':lium_spkdiarization-8.4.1'
+include ':app'

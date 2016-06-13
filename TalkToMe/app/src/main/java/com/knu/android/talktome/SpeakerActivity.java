@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -12,12 +14,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.knu.android.talktome.instance.Constant;
+import com.knu.android.talktome.network.Communication;
+import com.knu.android.talktome.network.CommunicationManager;
 import com.knu.android.talktome.utils.ExtAudioRecorder;
 
-import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
-import fr.lium.spkDiarization.system.Diarization;
+import data.OBJECT;
 
 
 public class SpeakerActivity extends AppCompatActivity {
@@ -83,9 +89,30 @@ public class SpeakerActivity extends AppCompatActivity {
     }
 
     public void btnBuildGmm(View v) {
-        String[] diarizationParams = {"--fInputMask=%s.wav", "--sOutputMask=%s.seg", "--doCEClustering", "base"};
-        Diarization.main(diarizationParams);
-        Toast.makeText(SpeakerActivity.this, "Finish", Toast.LENGTH_SHORT).show();
+        RandomAccessFile file = null;
+        byte[] wavefile = null;
+        try {
+            file = new RandomAccessFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/NaverSpeechTest/base.wav", "r");
+            wavefile = new byte[(int)file.length()];
+            file.read(wavefile);
+
+            new Communication(new OBJECT(Constant.SEND_BASE_WAVE, wavefile), new CommunicationManager() {
+                @Override
+                public void AfterCommunication(OBJECT getInObject) {
+                    try {
+                        handler.sendMessage(Message.obtain(handler, getInObject.getMessage(),
+                                getInObject));
+                    } catch (NullPointerException e) {
+                        handler.sendEmptyMessage(-1);
+                    }
+                }
+            });
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -94,21 +121,17 @@ public class SpeakerActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    public synchronized void execCommand(String command) {
-        try{
-            Process su = Runtime.getRuntime().exec("su");
-            DataOutputStream outputStream = new DataOutputStream(su.getOutputStream());
-
-            outputStream.writeBytes(command + "\n");
-            outputStream.flush();
-
-            outputStream.writeBytes("exit\n");
-            outputStream.flush();
-            su.waitFor();
-        }catch(IOException e){
-            e.printStackTrace();
-        }catch(InterruptedException e){
-            e.printStackTrace();
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case Constant.SEND_BASE_WAVE:
+                    Toast.makeText(SpeakerActivity.this, "gmm 을 생성하였습니다.", Toast.LENGTH_SHORT).show();
+                    break;
+                case -1:
+                    Toast.makeText(SpeakerActivity.this, "서버통신에 실패하였습니다", Toast.LENGTH_SHORT).show();
+                    break;
+            }
         }
-    }
+    };
 }
