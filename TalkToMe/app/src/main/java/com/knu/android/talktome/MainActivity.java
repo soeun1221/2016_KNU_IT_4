@@ -8,17 +8,22 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.knu.android.talktome.instance.Constant;
 import com.knu.android.talktome.utils.AudioWriterPCM;
 import com.naver.speech.clientapi.SpeechConfig;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+
+import data.OBJECT;
 
 
 public class MainActivity extends Activity {
@@ -41,14 +46,14 @@ public class MainActivity extends Activity {
     private boolean isRunning;
     private boolean listening;
 
-    private SharedPreferences sharedPref;
-
     private ListView listView;
     public static MessageAdapter messageAdapter;
-
     private Client client;
 
     private long backPressedTime = 0;
+
+
+    private SharedPreferences sharedPref;
 
     // Handle speech recognition Messages.
     private void handleMessage(Message msg) throws IOException {
@@ -57,7 +62,7 @@ public class MainActivity extends Activity {
                 // Now an user can speak.
                 txtResult.setText("Connected");
                 writer = new AudioWriterPCM(
-                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/NaverSpeechTest", this);
+                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/TalkToMe", this);
                 writer.open("Test");
                 break;
 
@@ -77,7 +82,10 @@ public class MainActivity extends Activity {
                 String[] results = (String[]) msg.obj;
                 mResult = results[0];
                 txtResult.setText(mResult);
-                sendTalk(mResult);
+                if (!mResult.isEmpty()) {
+                    Log.d(TAG, "handleMessage: " + writer.getBytes().length);
+                    sendTalk(new OBJECT(Constant.SEND_MESSAGE, writer.getBytes(), mResult));
+                }
                 break;
 
             case R.id.recognitionError:
@@ -109,7 +117,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         sharedPref = getSharedPreferences("TalkToMe", Activity.MODE_PRIVATE);
 
         txtResult = (TextView) findViewById(R.id.txt_result);
@@ -119,6 +126,11 @@ public class MainActivity extends Activity {
         messageAdapter = new MessageAdapter(this, R.layout.message_item);
         listView.setAdapter(messageAdapter);
         listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+
+        client = Client.getInstance("");
+        client.setMessageAdapter(messageAdapter);
+        client.send(new OBJECT(Constant.SEND_NAME, sharedPref.getString("speaker", "")));//사용자 이름을 서버로 출력
+
 
         // When message is added, it makes listview to scroll last message
         messageAdapter.registerDataSetObserver(new DataSetObserver() {
@@ -135,9 +147,6 @@ public class MainActivity extends Activity {
         handler = new RecognitionHandler(this);
 
         naverRecognizer = new NaverRecognizer(this, handler, CLIENT_ID, SPEECH_CONFIG);
-
-        client = new Client(sharedPref.getString("speaker", ""), messageAdapter);
-        client.execute();
     }
 
     public void btnStart(View v) {
@@ -167,9 +176,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void sendTalk(String message) throws IOException {
-        if (message.isEmpty()) return;
-        client.send(message);
+    public void sendTalk(OBJECT object) throws IOException {
+        Log.d(TAG, "sendTalk: try to send talk");
+        client.send(object);
     }
 
     @Override
@@ -237,7 +246,7 @@ public class MainActivity extends Activity {
         long intervalTime = tempTime - backPressedTime;
         if (intervalTime >= 0 && intervalTime <= 2000) {
             try {
-                sendTalk("bye");
+                sendTalk(new OBJECT(Constant.SEND_BYE));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -245,6 +254,15 @@ public class MainActivity extends Activity {
         } else {
             backPressedTime = tempTime;
             Toast.makeText(this, "'뒤로'버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void btnSave(View v) {
+        Toast.makeText(MainActivity.this, "파일로 저장합니다", Toast.LENGTH_SHORT).show();
+        try {
+            sendTalk(new OBJECT(Constant.SAVE_REQUEST));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

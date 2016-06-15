@@ -20,7 +20,7 @@ public class Server {
                 Socket socket = serverSocket.accept();//클라이언트에서 연결 요청이 들어오면 그때 소켓을 하나 생성함
                 System.out.println(CLASS + "[" + socket.getInetAddress() + "] 접속 : " + cnt++);
                 Thread thread = new ClientThread(socket);// 클라이언트들에게 온 데이터를 처리하기 위한 스레드
-                thread.start();
+                thread.start( );
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

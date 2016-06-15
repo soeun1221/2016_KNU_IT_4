@@ -1,0 +1,13 @@
+;; cluster f0 
+msg_1 1 152 72 U U U f0 [ initial = 0 ]
+;; cluster f3 
+msg_1 1 373 67 U U U f3 [ initial = 0 ]
+;; cluster iS 
+msg_1 1 440 39 U U U iS [ initial = 0 ]
+;; cluster iT 
+msg_1 1 135 17 U U U iT [ initial = 0 ]
+;; cluster j 
+msg_1 1 325 48 U U U j [ initial = 0 ]
+;; cluster p 
+msg_1 1 0 135 U U U p [ initial = 0 ]
+msg_1 1 224 101 U U U p [ initial = 0 ]

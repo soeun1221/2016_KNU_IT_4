@@ -1,0 +1,8 @@
+;; cluster f3 [ score:FS = -34.42011162521206 ] [ score:FT = -34.95848351375352 ] [ score:MS = -34.23583822859265 ] [ score:MT = -34.78426379708097 ] 
+msg_2 1 503 67 M S U f3 [ initial = 0 ]
+;; cluster iS [ score:FS = -33.99051025044474 ] [ score:FT = -35.021934861779144 ] [ score:MS = -34.36915282954641 ] [ score:MT = -35.030557405253475 ] 
+msg_2 1 570 49 F S U iS [ initial = 0 ]
+;; cluster j [ score:FS = -33.98277722823657 ] [ score:FT = -34.38206316978679 ] [ score:MS = -34.31540123647944 ] [ score:MT = -34.81332414348313 ] 
+msg_2 1 453 50 F S U j [ initial = 0 ]
+;; cluster p [ score:FS = -32.76186892645966 ] [ score:FT = -33.90286295081987 ] [ score:MS = -33.76855226754479 ] [ score:MT = -34.29500367297157 ] 
+msg_2 1 0 453 F S U p [ initial = 0 ]
